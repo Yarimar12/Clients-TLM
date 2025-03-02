@@ -92,24 +92,36 @@ with col1:
             st.success("✅ Interaction saved successfully!")
 
 with col2:
-    st.subheader("🔍 Search Customer Interactions")
+    st.subheader("🔍 Search, Filter & Sort Customer Interactions")
     search_query = st.text_input("Search by Customer Name, Contact, or Company")
+    sort_by = st.selectbox("Sort by", ["Date", "Customer Name", "Last Interaction Date", "Follow-up Reminder Date"], index=0)
+    customer_type_filter = st.multiselect("Filter by Customer Type", ["New", "Returning", "VIP"], default=[])
     
     # Load and filter data
     df = load_data()
     if search_query:
         df = df[df.apply(lambda row: search_query.lower() in str(row["Customer Name"]).lower() or search_query.lower() in str(row["Contact"]).lower() or search_query.lower() in str(row["Company"]).lower(), axis=1)]
     
+    if customer_type_filter:
+        df = df[df["Customer Type"].isin(customer_type_filter)]
+    
+    df = df.sort_values(by=sort_by, ascending=True)
+    
     # Display filtered results
     st.subheader("📋 Customer Interaction History")
     st.dataframe(df, use_container_width=True, height=400)
     
-    # Show upcoming follow-ups
+    # Show upcoming follow-ups with ability to mark as completed
     st.subheader("⏰ Follow-up Reminders")
     today = datetime.today().strftime("%Y-%m-%d")
     df_followups = df[df["Follow-up Reminder Date"] >= today]
     if not df_followups.empty:
-        st.dataframe(df_followups, use_container_width=True, height=200)
+        for index, row in df_followups.iterrows():
+            st.write(f"**{row['Customer Name']}** - Follow-up on {row['Follow-up Reminder Date']}")
+            if st.button(f"✅ Mark as Completed {row['Customer Name']}", key=index):
+                df.at[index, "Follow-up Reminder Date"] = "Completed"
+                df.to_csv(DATA_FILE, index=False)
+                st.experimental_rerun()
     else:
         st.info("No upcoming follow-ups.")
     
