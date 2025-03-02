@@ -75,10 +75,10 @@ initialize_data()
 st.title("🎭 Teatro Las Máscaras CRM Logger")
 st.write("Log customer interactions quickly and efficiently.")
 
-# Layout for input form and search
-col1, col2 = st.columns([2, 3])
+# Use tabs for better navigation
+tab1, tab2, tab3 = st.tabs(["📋 Customer Log", "🔍 Search & Filter", "⏰ Follow-ups"])
 
-with col1:
+with tab1:
     st.subheader("📝 Log New Interaction")
     with st.form("interaction_form"):
         customer_name = st.text_input("Customer Name")
@@ -95,7 +95,7 @@ with col1:
             save_data(customer_name, contact, customer_type, company, preferred_contact, last_interaction, follow_up, notes)
             st.success("✅ Interaction saved successfully!")
 
-with col2:
+with tab2:
     st.subheader("🔍 Search, Filter & Sort Customer Interactions")
     search_query = st.text_input("Search by Customer Name, Contact, or Company")
     sort_by = st.selectbox("Sort by", ["Date", "Customer Name", "Last Interaction Date", "Follow-up Reminder Date", "Total Visits"], index=0)
@@ -111,11 +111,9 @@ with col2:
     
     df = df.sort_values(by=sort_by, ascending=True)
     
-    # Display filtered results
-    st.subheader("📋 Customer Interaction History")
     st.dataframe(df, use_container_width=True, height=400)
-    
-    # Show upcoming follow-ups with ability to mark as completed
+
+with tab3:
     st.subheader("⏰ Follow-up Reminders")
     today = datetime.today().strftime("%Y-%m-%d")
     df_followups = df[df["Follow-up Reminder Date"] >= today]
