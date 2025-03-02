@@ -17,6 +17,7 @@ def login():
         if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == password:
             st.session_state["logged_in"] = True
             st.session_state["username"] = username
+            st.sidebar.success("✅ Login successful! Please wait...")
             st.experimental_rerun()
         else:
             st.error("❌ Incorrect username or password")
@@ -29,6 +30,7 @@ if "logged_in" not in st.session_state:
 def logout():
     if st.sidebar.button("🚪 Logout"):
         st.session_state.clear()
+        st.sidebar.success("✅ Logged out successfully!")
         st.experimental_rerun()
 
 st.sidebar.write(f"👤 Logged in as: {st.session_state['username']}")
