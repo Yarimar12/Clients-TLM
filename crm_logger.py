@@ -25,6 +25,15 @@ if "logged_in" not in st.session_state:
     login()
     st.stop()
 
+# Logout button
+def logout():
+    if st.sidebar.button("🚪 Logout"):
+        st.session_state.clear()
+        st.rerun()
+
+st.sidebar.write(f"👤 Logged in as: {st.session_state['username']}")
+logout()
+
 # Initialize the CSV file if it doesn't exist
 def initialize_data():
     if not os.path.exists(DATA_FILE):
@@ -54,25 +63,35 @@ initialize_data()
 st.title("🎭 Teatro Las Máscaras CRM Logger")
 st.write("Log customer interactions quickly and efficiently.")
 
-# Form to input new interactions
-with st.form("interaction_form"):
-    customer_name = st.text_input("Customer Name")
-    contact = st.text_input("Contact (Email/Phone)")
-    notes = st.text_area("Interaction Notes")
-    submitted = st.form_submit_button("Save Interaction")
+# Layout for input form and search
+col1, col2 = st.columns([2, 3])
+
+with col1:
+    st.subheader("📝 Log New Interaction")
+    with st.form("interaction_form"):
+        customer_name = st.text_input("Customer Name")
+        contact = st.text_input("Contact (Email/Phone)")
+        notes = st.text_area("Interaction Notes")
+        submitted = st.form_submit_button("Save Interaction", use_container_width=True)
+        
+        if submitted and customer_name:
+            save_data(customer_name, contact, notes)
+            st.success("✅ Interaction saved successfully!")
+
+with col2:
+    st.subheader("🔍 Search Customer Interactions")
+    search_query = st.text_input("Search by Customer Name or Contact")
     
-    if submitted and customer_name:
-        save_data(customer_name, contact, notes)
-        st.success("✅ Interaction saved successfully!")
-
-# Display logged interactions with search functionality
-st.subheader("🔍 Search Customer Interactions")
-search_query = st.text_input("Search by Customer Name or Contact")
-
-# Load and filter data
-df = load_data()
-if search_query:
-    df = df[df.apply(lambda row: search_query.lower() in str(row["Customer Name"]).lower() or search_query.lower() in str(row["Contact"]).lower(), axis=1)]
-
-st.subheader("📋 Customer Interaction History")
-st.dataframe(df)
+    # Load and filter data
+    df = load_data()
+    if search_query:
+        df = df[df.apply(lambda row: search_query.lower() in str(row["Customer Name"]).lower() or search_query.lower() in str(row["Contact"]).lower(), axis=1)]
+    
+    # Display filtered results
+    st.subheader("📋 Customer Interaction History")
+    st.dataframe(df, use_container_width=True, height=400)
+    
+    # Export to CSV option
+    if not df.empty:
+        csv = df.to_csv(index=False).encode('utf-8')
+        st.download_button("⬇️ Download Data as CSV", csv, "crm_data.csv", "text/csv", use_container_width=True)
