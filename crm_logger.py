@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+from datetime import datetime
 
 # File to store customer interactions
 DATA_FILE = "crm_data.csv"
@@ -102,6 +103,15 @@ with col2:
     # Display filtered results
     st.subheader("📋 Customer Interaction History")
     st.dataframe(df, use_container_width=True, height=400)
+    
+    # Show upcoming follow-ups
+    st.subheader("⏰ Follow-up Reminders")
+    today = datetime.today().strftime("%Y-%m-%d")
+    df_followups = df[df["Follow-up Reminder Date"] >= today]
+    if not df_followups.empty:
+        st.dataframe(df_followups, use_container_width=True, height=200)
+    else:
+        st.info("No upcoming follow-ups.")
     
     # Export to CSV option
     if not df.empty:
