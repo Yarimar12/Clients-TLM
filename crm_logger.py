@@ -39,20 +39,25 @@ logout()
 # Initialize the CSV file if it doesn't exist
 def initialize_data():
     if not os.path.exists(DATA_FILE):
-        df = pd.DataFrame(columns=["Date", "Customer Name", "Contact", "Interaction Notes"])
+        df = pd.DataFrame(columns=["Date", "Customer Name", "Contact", "Customer Type", "Company", "Preferred Contact Method", "Last Interaction Date", "Follow-up Reminder Date", "Interaction Notes"])
         df.to_csv(DATA_FILE, index=False)
 
 # Load customer interactions
 def load_data():
-    return pd.read_csv(DATA_FILE) if os.path.exists(DATA_FILE) else pd.DataFrame(columns=["Date", "Customer Name", "Contact", "Interaction Notes"])
+    return pd.read_csv(DATA_FILE) if os.path.exists(DATA_FILE) else pd.DataFrame(columns=["Date", "Customer Name", "Contact", "Customer Type", "Company", "Preferred Contact Method", "Last Interaction Date", "Follow-up Reminder Date", "Interaction Notes"])
 
 # Save new interaction
-def save_data(name, contact, notes):
+def save_data(name, contact, customer_type, company, preferred_contact, last_interaction, follow_up, notes):
     df = load_data()
     new_entry = pd.DataFrame({
         "Date": [pd.Timestamp.now().strftime("%Y-%m-%d %H:%M")],
         "Customer Name": [name],
         "Contact": [contact],
+        "Customer Type": [customer_type],
+        "Company": [company],
+        "Preferred Contact Method": [preferred_contact],
+        "Last Interaction Date": [last_interaction],
+        "Follow-up Reminder Date": [follow_up],
         "Interaction Notes": [notes]
     })
     df = pd.concat([df, new_entry], ignore_index=True)
@@ -73,21 +78,26 @@ with col1:
     with st.form("interaction_form"):
         customer_name = st.text_input("Customer Name")
         contact = st.text_input("Contact (Email/Phone)")
+        customer_type = st.selectbox("Customer Type", ["New", "Returning", "VIP"])
+        company = st.text_input("Company/Organization")
+        preferred_contact = st.selectbox("Preferred Contact Method", ["Email", "Phone Call", "WhatsApp", "In-Person"])
+        last_interaction = st.date_input("Last Interaction Date")
+        follow_up = st.date_input("Follow-up Reminder Date")
         notes = st.text_area("Interaction Notes")
         submitted = st.form_submit_button("Save Interaction", use_container_width=True)
         
         if submitted and customer_name:
-            save_data(customer_name, contact, notes)
+            save_data(customer_name, contact, customer_type, company, preferred_contact, last_interaction, follow_up, notes)
             st.success("✅ Interaction saved successfully!")
 
 with col2:
     st.subheader("🔍 Search Customer Interactions")
-    search_query = st.text_input("Search by Customer Name or Contact")
+    search_query = st.text_input("Search by Customer Name, Contact, or Company")
     
     # Load and filter data
     df = load_data()
     if search_query:
-        df = df[df.apply(lambda row: search_query.lower() in str(row["Customer Name"]).lower() or search_query.lower() in str(row["Contact"]).lower(), axis=1)]
+        df = df[df.apply(lambda row: search_query.lower() in str(row["Customer Name"]).lower() or search_query.lower() in str(row["Contact"]).lower() or search_query.lower() in str(row["Company"]).lower(), axis=1)]
     
     # Display filtered results
     st.subheader("📋 Customer Interaction History")
