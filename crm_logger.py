@@ -40,28 +40,32 @@ logout()
 # Initialize the CSV file if it doesn't exist
 def initialize_data():
     if not os.path.exists(DATA_FILE):
-        df = pd.DataFrame(columns=["Date", "Customer Name", "Contact", "Customer Type", "Company", "Preferred Contact Method", "Last Interaction Date", "Follow-up Reminder Date", "Interaction Notes"])
+        df = pd.DataFrame(columns=["Date", "Customer Name", "Contact", "Customer Type", "Company", "Preferred Contact Method", "Last Interaction Date", "Follow-up Reminder Date", "Interaction Notes", "Total Visits"])
         df.to_csv(DATA_FILE, index=False)
 
 # Load customer interactions
 def load_data():
-    return pd.read_csv(DATA_FILE) if os.path.exists(DATA_FILE) else pd.DataFrame(columns=["Date", "Customer Name", "Contact", "Customer Type", "Company", "Preferred Contact Method", "Last Interaction Date", "Follow-up Reminder Date", "Interaction Notes"])
+    return pd.read_csv(DATA_FILE) if os.path.exists(DATA_FILE) else pd.DataFrame(columns=["Date", "Customer Name", "Contact", "Customer Type", "Company", "Preferred Contact Method", "Last Interaction Date", "Follow-up Reminder Date", "Interaction Notes", "Total Visits"])
 
 # Save new interaction
 def save_data(name, contact, customer_type, company, preferred_contact, last_interaction, follow_up, notes):
     df = load_data()
-    new_entry = pd.DataFrame({
-        "Date": [pd.Timestamp.now().strftime("%Y-%m-%d %H:%M")],
-        "Customer Name": [name],
-        "Contact": [contact],
-        "Customer Type": [customer_type],
-        "Company": [company],
-        "Preferred Contact Method": [preferred_contact],
-        "Last Interaction Date": [last_interaction],
-        "Follow-up Reminder Date": [follow_up],
-        "Interaction Notes": [notes]
-    })
-    df = pd.concat([df, new_entry], ignore_index=True)
+    if name in df["Customer Name"].values:
+        df.loc[df["Customer Name"] == name, "Total Visits"] += 1
+    else:
+        new_entry = pd.DataFrame({
+            "Date": [pd.Timestamp.now().strftime("%Y-%m-%d %H:%M")],
+            "Customer Name": [name],
+            "Contact": [contact],
+            "Customer Type": [customer_type],
+            "Company": [company],
+            "Preferred Contact Method": [preferred_contact],
+            "Last Interaction Date": [last_interaction],
+            "Follow-up Reminder Date": [follow_up],
+            "Interaction Notes": [notes],
+            "Total Visits": [1]
+        })
+        df = pd.concat([df, new_entry], ignore_index=True)
     df.to_csv(DATA_FILE, index=False)
 
 # Initialize data file
@@ -94,7 +98,7 @@ with col1:
 with col2:
     st.subheader("🔍 Search, Filter & Sort Customer Interactions")
     search_query = st.text_input("Search by Customer Name, Contact, or Company")
-    sort_by = st.selectbox("Sort by", ["Date", "Customer Name", "Last Interaction Date", "Follow-up Reminder Date"], index=0)
+    sort_by = st.selectbox("Sort by", ["Date", "Customer Name", "Last Interaction Date", "Follow-up Reminder Date", "Total Visits"], index=0)
     customer_type_filter = st.multiselect("Filter by Customer Type", ["New", "Returning", "VIP"], default=[])
     
     # Load and filter data
