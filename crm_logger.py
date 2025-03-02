@@ -5,6 +5,26 @@ import os
 # File to store customer interactions
 DATA_FILE = "crm_data.csv"
 
+# Streamlit Authentication
+USER_CREDENTIALS = {"admin": "password123"}  # Change this later for security
+
+# Function to verify login
+def login():
+    st.sidebar.header("🔐 Login")
+    username = st.sidebar.text_input("Username")
+    password = st.sidebar.text_input("Password", type="password")
+    if st.sidebar.button("Login"):
+        if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == password:
+            st.session_state["logged_in"] = True
+            st.session_state["username"] = username
+            st.success("✅ Login successful!")
+        else:
+            st.error("❌ Incorrect username or password")
+
+if "logged_in" not in st.session_state:
+    login()
+    st.stop()
+
 # Initialize the CSV file if it doesn't exist
 def initialize_data():
     if not os.path.exists(DATA_FILE):
