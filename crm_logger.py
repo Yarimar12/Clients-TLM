@@ -17,26 +17,21 @@ def login():
         if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == password:
             st.session_state["logged_in"] = True
             st.session_state["username"] = username
-            st.session_state["refresh"] = True  # Set flag to refresh
-            st.sidebar.success("✅ Login successful! Please wait...")
+            st.sidebar.success("✅ Login successful! Redirecting...")
+            st.rerun()
         else:
             st.error("❌ Incorrect username or password")
 
-if "logged_in" not in st.session_state:
+if "logged_in" not in st.session_state or not st.session_state["logged_in"]:
     login()
     st.stop()
-
-# Handle page refresh
-if "refresh" in st.session_state and st.session_state["refresh"]:
-    del st.session_state["refresh"]  # Remove flag after refresh
-    st.experimental_rerun()
 
 # Logout button
 def logout():
     if st.sidebar.button("🚪 Logout"):
         st.session_state.clear()
-        st.session_state["refresh"] = True  # Set flag to refresh
         st.sidebar.success("✅ Logged out successfully!")
+        st.rerun()
 
 st.sidebar.write(f"👤 Logged in as: {st.session_state['username']}")
 logout()
