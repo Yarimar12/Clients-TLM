@@ -45,7 +45,14 @@ with st.form("interaction_form"):
         save_data(customer_name, contact, notes)
         st.success("✅ Interaction saved successfully!")
 
-# Display logged interactions
-st.subheader("📋 Customer Interaction History")
+# Display logged interactions with search functionality
+st.subheader("🔍 Search Customer Interactions")
+search_query = st.text_input("Search by Customer Name or Contact")
+
+# Load and filter data
 df = load_data()
+if search_query:
+    df = df[df.apply(lambda row: search_query.lower() in str(row["Customer Name"]).lower() or search_query.lower() in str(row["Contact"]).lower(), axis=1)]
+
+st.subheader("📋 Customer Interaction History")
 st.dataframe(df)
