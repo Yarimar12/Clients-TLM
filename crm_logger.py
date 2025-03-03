@@ -7,7 +7,7 @@ from datetime import datetime
 
 # Load Google Credentials from Streamlit Secrets
 creds_json = st.secrets["GOOGLE_CREDENTIALS"]
-creds_dict = json.loads(creds_json)
+creds_dict = creds_json
 SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 CREDS = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
 GC = gspread.authorize(CREDS)
