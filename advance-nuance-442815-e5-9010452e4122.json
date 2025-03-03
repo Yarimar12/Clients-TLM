@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "advance-nuance-442815-e5",
+  "private_key_id": "9010452e4122a3dcae4d9fb6543018df34d47cc5",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQD0gkOGg1eTGmqG\nS4TkhZYlC2PAt6Fl3oHIawNSIaOrc/2X44MKBR/RnvdRRXWjdRRLXDefTaHnQekX\niJN4ZCSUBU/D/vaHHtpyLc7moNaZQsEUXJ5V32fq6/KSB0mbR8dib0spDc0KvSjz\n6P+YxHwdDqRbChF5SsOYPojSKb0uOOroc/05250/YHF5pRnl7M9aPv/hkNkQZzU4\nFKmzRz9CNqydHvLaxxqshCEYNeJyrBd71YUlEL2av/nN0psmVHn7v4C/FacEpKAY\nVqebJyoTaPYs+FKsf+STe7b7PnLAHkZaPMSuPlqNgGxq9rw9B5cliasJ8HV5kSM4\ncQhxdj0TAgMBAAECggEAO6xRA5KpfF7NkbH7oHQT1T2m3kFStBRuUzX+zPwlwDHi\nOcAOWpMulU+5J04O7FImHlBGyOu+8DwvQY2VBCRYowF62qgujYKTqJsSbEnjperb\nSXdjMyz/ZR+ph0cdCTcm65ii3MWf/Zd117VNMAEAE21f4lIeOp5rBwx4Auap444J\ncO8nn7iwku9zyeW+IOwri70z051HCnqpo5ykWzk2N9BHYz1iyO79YLkAEl21BIHO\nQw6xUxN1d1hyr992NxBaDDKxMzaDex3irZYLIJegfnPpbtGefrJWvYmZj5a12sXj\n8UkIwEIjHgOsjypjqfCH6WDuB3FpF5/rkUdCxJ7KGQKBgQD9oqAx7QjLXcuLPZf4\nrWvv0gOAs1fcsW0z+NgKIRZ+HqRLYweSlzi2/HrJUuPzqlumRUD/YqcoxOgm1xdz\nqK1Weg/WeYiQpms0a0+6/yqOtP2aNrHXcvN+JgGlaf+H77zuHPkAvQ7y7WbwD3MQ\nGCNJNk5HEkmGMBgFWa6GX+C1SwKBgQD2ydrsdRzCsq1WDzYch0kkfD2FO8spXcn2\nZBGoNUsdz3aC0G02kH+OKbAyDEamlhNmpM2DEPJnW9vG4/hhxDZKRWfXkZsY2tZX\ngmiqm8RACkerNaX1B5T42RONQ0ttK8qwf7Q0Focd7wKQkSZMj96VuHrORykPEsg4\nhi4atQHiWQKBgQDH9+3BLxbd78dIsnkc0O3mmHe2gq9lCmYEsc7yvX+UU+hIn30a\n8CsA6jKMg9PBCrFTeAp0z3znQceex7pvr69qHLZb7FnlYa/oFis4TXFqLfw8F59D\nNBgRfzmRBu82Z6dXPHR9RpGAqfeckTGwoLdBQ5WXpy1cpJJrtXdJ7lGl3QKBgQDJ\nvX0vaxUVvAaioVC0xYrvPnj0H0sXB8p/lpIwlVBQkDXq/gMpZbpANqgIYaynpWs6\nr2Io0IO4Jolk7xsuoL1YvaADws2s5cfuRXbWcPte9ohb10FRKt+HBb1L70ULe473\n9Y0UP4441BeeomlSkRF+Bw6s7dMMtWfjfRzXTDy8EQKBgGz33F6PY6AW2S2AtuoX\nIdraDgLh0+LkuMPN1CObhzDvTyysPZ31h2kIInPDY19mwNgMAE48KxVAw2LKwYI7\nmUpiCLk7y77u9OEwThrllBa2rg1r3k2QEN+R5fZNWFosDz26IY5xQ9Nd3oaPCqpR\nVL+d35m9tjSQ/IvOA374wC+h\n-----END PRIVATE KEY-----\n",
+  "client_email": "crm-logger-service@advance-nuance-442815-e5.iam.gserviceaccount.com",
+  "client_id": "108534962959764606815",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/crm-logger-service%40advance-nuance-442815-e5.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
