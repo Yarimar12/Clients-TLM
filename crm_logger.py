@@ -2,16 +2,20 @@ import streamlit as st
 import pandas as pd
 import gspread
 import json
+from google.auth.exceptions import RefreshError
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 
 # Load Google Credentials from Streamlit Secrets
-creds_json = st.secrets["GOOGLE_CREDENTIALS"]
-creds_dict = creds_json
-SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-CREDS = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
-GC = gspread.authorize(CREDS)
-SHEET = GC.open("CRM_Logger").sheet1
+try:
+    creds_dict = st.secrets["GOOGLE_CREDENTIALS"]
+    SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+    CREDS = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
+    GC = gspread.authorize(CREDS)
+    SHEET = GC.open("CRM_Logger").sheet1
+except RefreshError:
+    st.error("⚠️ Google authentication failed. Please check your credentials and API access.")
+    st.stop()
 
 # Streamlit Authentication
 USER_CREDENTIALS = {"admin": "password123"}  # Change this later for security
