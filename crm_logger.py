@@ -1,10 +1,17 @@
 import streamlit as st
 import pandas as pd
-import os
+import gspread
+import json
+from google.oauth2.service_account import Credentials
 from datetime import datetime
 
-# File to store customer interactions
-DATA_FILE = "crm_data.csv"
+# Load Google Credentials from Streamlit Secrets
+creds_json = st.secrets["GOOGLE_CREDENTIALS"]
+creds_dict = json.loads(creds_json)
+SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+CREDS = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
+GC = gspread.authorize(CREDS)
+SHEET = GC.open("CRM_Logger").sheet1
 
 # Streamlit Authentication
 USER_CREDENTIALS = {"admin": "password123"}  # Change this later for security
@@ -37,39 +44,25 @@ def logout():
 st.sidebar.write(f"👤 Logged in as: {st.session_state['username']}")
 logout()
 
-# Initialize the CSV file if it doesn't exist
-def initialize_data():
-    if not os.path.exists(DATA_FILE):
-        df = pd.DataFrame(columns=["Date", "Customer Name", "Contact", "Customer Type", "Company", "Preferred Contact Method", "Last Interaction Date", "Follow-up Reminder Date", "Interaction Notes", "Total Visits"])
-        df.to_csv(DATA_FILE, index=False)
-
-# Load customer interactions
+# Load customer interactions from Google Sheets
 def load_data():
-    return pd.read_csv(DATA_FILE) if os.path.exists(DATA_FILE) else pd.DataFrame(columns=["Date", "Customer Name", "Contact", "Customer Type", "Company", "Preferred Contact Method", "Last Interaction Date", "Follow-up Reminder Date", "Interaction Notes", "Total Visits"])
+    data = SHEET.get_all_records()
+    return pd.DataFrame(data)
 
-# Save new interaction
+# Save new interaction to Google Sheets
 def save_data(name, contact, customer_type, company, preferred_contact, last_interaction, follow_up, notes):
     df = load_data()
-    if name in df["Customer Name"].values:
-        df.loc[df["Customer Name"] == name, "Total Visits"] += 1
+    existing_names = df["Customer Name"].values if not df.empty else []
+    if name in existing_names:
+        row_idx = df.index[df["Customer Name"] == name][0] + 2  # Google Sheets is 1-based index
+        SHEET.update_cell(row_idx, 10, int(df.loc[df["Customer Name"] == name, "Total Visits"].values[0]) + 1)
     else:
-        new_entry = pd.DataFrame({
-            "Date": [pd.Timestamp.now().strftime("%Y-%m-%d %H:%M")],
-            "Customer Name": [name],
-            "Contact": [contact],
-            "Customer Type": [customer_type],
-            "Company": [company],
-            "Preferred Contact Method": [preferred_contact],
-            "Last Interaction Date": [last_interaction],
-            "Follow-up Reminder Date": [follow_up],
-            "Interaction Notes": [notes],
-            "Total Visits": [1]
-        })
-        df = pd.concat([df, new_entry], ignore_index=True)
-    df.to_csv(DATA_FILE, index=False)
-
-# Initialize data file
-initialize_data()
+        new_entry = [
+            datetime.now().strftime("%Y-%m-%d %H:%M"), name, contact, customer_type,
+            company, preferred_contact, last_interaction.strftime("%Y-%m-%d"),
+            follow_up.strftime("%Y-%m-%d"), notes, 1
+        ]
+        SHEET.append_row(new_entry)
 
 # Streamlit App UI
 st.title("🎭 Teatro Las Máscaras CRM Logger")
@@ -121,8 +114,7 @@ with tab3:
         for index, row in df_followups.iterrows():
             st.write(f"**{row['Customer Name']}** - Follow-up on {row['Follow-up Reminder Date']}")
             if st.button(f"✅ Mark as Completed {row['Customer Name']}", key=index):
-                df.at[index, "Follow-up Reminder Date"] = "Completed"
-                df.to_csv(DATA_FILE, index=False)
+                SHEET.update_cell(index + 2, 8, "Completed")
                 st.experimental_rerun()
     else:
         st.info("No upcoming follow-ups.")
