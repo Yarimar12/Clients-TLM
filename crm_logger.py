@@ -10,7 +10,15 @@ creds_dict = st.secrets["GOOGLE_CREDENTIALS"]
 SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 CREDS = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
 GC = gspread.authorize(CREDS)
-SHEET = GC.open("CRM_Logger").worksheet("Customer_Log")
+def get_or_create_customer_sheet():
+    try:
+        return GC.open("CRM_Logger").worksheet("Customer_Log")
+    except gspread.exceptions.WorksheetNotFound:
+        sheet = GC.open("CRM_Logger").add_worksheet(title="Customer_Log", rows="100", cols="10")
+        sheet.append_row(["Date", "Customer Name", "Contact", "Customer Type", "Company", "Preferred Contact Method", "Last Interaction Date", "Follow-up Reminder Date", "Interaction Notes", "Total Visits"])
+        return sheet
+
+SHEET = get_or_create_customer_sheet()
 
 # Ensure "Ticket_Sales" sheet exists
 def get_or_create_ticket_sheet():
