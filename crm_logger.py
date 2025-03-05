@@ -11,6 +11,7 @@ SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis
 CREDS = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
 GC = gspread.authorize(CREDS)
 SHEET = GC.open("CRM_Logger").sheet1
+TICKET_SHEET = GC.open("CRM_Logger").worksheet("Ticket_Sales")
 
 # Streamlit Authentication
 USER_CREDENTIALS = {"admin": "password123"}  # Change this later for security
@@ -48,6 +49,11 @@ def load_data():
     data = SHEET.get_all_records()
     return pd.DataFrame(data)
 
+# Load ticket sales data from Google Sheets
+def load_ticket_data():
+    data = TICKET_SHEET.get_all_records()
+    return pd.DataFrame(data)
+
 # Save new interaction to Google Sheets
 def save_data(name, contact, customer_type, company, preferred_contact, last_interaction, follow_up, notes):
     df = load_data()
@@ -63,12 +69,17 @@ def save_data(name, contact, customer_type, company, preferred_contact, last_int
         ]
         SHEET.append_row(new_entry)
 
+# Save new ticket sale to Google Sheets
+def save_ticket_sale(date, customer_name, ticket_type, payment_method, amount_paid, event_name):
+    new_entry = [date, customer_name, ticket_type, payment_method, amount_paid, event_name]
+    TICKET_SHEET.append_row(new_entry)
+
 # Streamlit App UI
 st.title("🎭 Teatro Las Máscaras CRM Logger")
-st.write("Log customer interactions quickly and efficiently.")
+st.write("Log customer interactions and track ticket sales.")
 
 # Use tabs for better navigation
-tab1, tab2, tab3 = st.tabs(["📋 Customer Log", "🔍 Search & Filter", "⏰ Follow-ups"])
+tab1, tab2, tab3, tab4 = st.tabs(["📋 Customer Log", "🔍 Search & Filter", "⏰ Follow-ups", "🎟 Ticket Sales"])
 
 with tab1:
     with st.expander("📝 Log New Interaction", expanded=True):
@@ -87,40 +98,28 @@ with tab1:
                 save_data(customer_name, contact, customer_type, company, preferred_contact, last_interaction, follow_up, notes)
                 st.success("✅ Interaction saved successfully!")
 
-with tab2:
-    with st.expander("🔍 Search, Filter & Sort Customer Interactions", expanded=True):
-        search_query = st.text_input("Search by Customer Name, Contact, or Company")
-        sort_by = st.selectbox("Sort by", ["Date", "Customer Name", "Last Interaction Date", "Follow-up Reminder Date", "Total Visits"], index=0)
-        customer_type_filter = st.multiselect("Filter by Customer Type", ["New", "Returning", "VIP"], default=[])
-        
-        # Load and filter data
-        df = load_data()
-        if search_query:
-            df = df[df.apply(lambda row: search_query.lower() in str(row["Customer Name"]).lower() or search_query.lower() in str(row["Contact"]).lower() or search_query.lower() in str(row["Company"]).lower(), axis=1)]
-        
-        if customer_type_filter:
-            df = df[df["Customer Type"].isin(customer_type_filter)]
-        
-        if sort_by in df.columns:
-            df = df.sort_values(by=sort_by, ascending=True)
-        else:
-            st.warning(f"⚠️ Column '{sort_by}' not found. Showing unsorted data.")
-        
-        st.dataframe(df, use_container_width=True, height=400)
+with tab4:
+    with st.expander("🎟 Log Ticket Sales", expanded=True):
+        with st.form("ticket_form"):
+            date = st.date_input("Date of Purchase")
+            customer_name = st.text_input("Customer Name (Leave blank for anonymous sales)")
+            ticket_type = st.selectbox("Ticket Type", ["General", "VIP", "Student Discount"]) 
+            payment_method = st.selectbox("Payment Method", ["Tix.do", "Cash at Door", "Bank Deposit"])
+            amount_paid = st.number_input("Amount Paid", min_value=0.0, format="%.2f")
+            event_name = st.text_input("Event Name")
+            submitted = st.form_submit_button("Save Ticket Sale", use_container_width=True)
+            
+            if submitted:
+                save_ticket_sale(date.strftime("%Y-%m-%d"), customer_name if customer_name else "Anonymous", ticket_type, payment_method, amount_paid, event_name)
+                st.success("✅ Ticket sale logged successfully!")
 
-with tab3:
-    with st.expander("⏰ Follow-up Reminders", expanded=True):
-        today = datetime.today().strftime("%Y-%m-%d")
-        if "Follow-up Reminder Date" in df.columns:
-            df_followups = df[df["Follow-up Reminder Date"] >= today]
+    with st.expander("📊 Ticket Sales Overview", expanded=True):
+        df_tickets = load_ticket_data()
+        if not df_tickets.empty:
+            total_revenue = df_tickets["Amount Paid"].astype(float).sum()
+            total_tickets = len(df_tickets)
+            st.metric(label="💰 Total Revenue", value=f"RD${total_revenue:,.2f}")
+            st.metric(label="🎟 Total Tickets Sold", value=total_tickets)
+            st.dataframe(df_tickets, use_container_width=True, height=400)
         else:
-            df_followups = pd.DataFrame()
-            st.warning("⚠️ Column 'Follow-up Reminder Date' not found. Unable to filter follow-ups.")
-        if not df_followups.empty:
-            for index, row in df_followups.iterrows():
-                st.write(f"**{row['Customer Name']}** - Follow-up on {row['Follow-up Reminder Date']}")
-                if st.button(f"✅ Mark as Completed {row['Customer Name']}", key=index):
-                    SHEET.update_cell(index + 2, 8, "Completed")
-                    st.experimental_rerun()
-        else:
-            st.info("No upcoming follow-ups.")
+            st.info("No ticket sales recorded yet.")
