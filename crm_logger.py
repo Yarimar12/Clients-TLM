@@ -2,20 +2,15 @@ import streamlit as st
 import pandas as pd
 import gspread
 import json
-from google.auth.exceptions import RefreshError
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 
 # Load Google Credentials from Streamlit Secrets
-try:
-    creds_dict = st.secrets["GOOGLE_CREDENTIALS"]
-    SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-    CREDS = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
-    GC = gspread.authorize(CREDS)
-    SHEET = GC.open("CRM_Logger").sheet1
-except RefreshError:
-    st.error("⚠️ Google authentication failed. Please check your credentials and API access.")
-    st.stop()
+creds_dict = st.secrets["GOOGLE_CREDENTIALS"]
+SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+CREDS = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
+GC = gspread.authorize(CREDS)
+SHEET = GC.open("CRM_Logger").sheet1
 
 # Streamlit Authentication
 USER_CREDENTIALS = {"admin": "password123"}  # Change this later for security
@@ -106,7 +101,10 @@ with tab2:
     if customer_type_filter:
         df = df[df["Customer Type"].isin(customer_type_filter)]
     
-    df = df.sort_values(by=sort_by, ascending=True)
+    if sort_by in df.columns:
+        df = df.sort_values(by=sort_by, ascending=True)
+    else:
+        st.warning(f"⚠️ Column '{sort_by}' not found. Showing unsorted data.")
     
     st.dataframe(df, use_container_width=True, height=400)
 
@@ -122,8 +120,3 @@ with tab3:
                 st.experimental_rerun()
     else:
         st.info("No upcoming follow-ups.")
-    
-    # Export to CSV option
-    if not df.empty:
-        csv = df.to_csv(index=False).encode('utf-8')
-        st.download_button("⬇️ Download Data as CSV", csv, "crm_data.csv", "text/csv", use_container_width=True)
