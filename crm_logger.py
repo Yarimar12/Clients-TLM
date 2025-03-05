@@ -100,36 +100,28 @@ st.write("Log customer interactions and track ticket sales.")
 # Use tabs for better navigation
 tab1, tab2, tab3, tab4 = st.tabs(["📋 Customer Log", "🔍 Search & Filter", "⏰ Follow-ups", "🎟 Ticket Sales"])
 
-with tab1:
-    with st.expander("📝 Log New Customer Interaction", expanded=True):
-        with st.form("interaction_form"):
-            customer_name = st.text_input("Customer Name")
-            contact = st.text_input("Contact (Email/Phone)")
-            customer_type = st.selectbox("Customer Type", ["New", "Returning", "VIP"])
-            company = st.text_input("Company/Organization")
-            preferred_contact = st.selectbox("Preferred Contact Method", ["Email", "Phone Call", "WhatsApp", "In-Person"])
-            last_interaction = st.date_input("Last Interaction Date")
-            follow_up = st.date_input("Follow-up Reminder Date")
-            notes = st.text_area("Interaction Notes")
-            submitted = st.form_submit_button("Save Interaction")
-            if submitted and customer_name:
-                save_data(customer_name, contact, customer_type, company, preferred_contact, last_interaction, follow_up, notes)
-                st.success("✅ Interaction saved successfully!")
+with tab4:
+    with st.expander("🎟 Log Ticket Sales", expanded=True):
+        with st.form("ticket_form"):
+            date = st.date_input("Date of Purchase")
+            customer_name = st.text_input("Customer Name (Leave blank for anonymous sales)")
+            ticket_type = st.selectbox("Ticket Type", ["General", "VIP", "Student Discount"]) 
+            payment_method = st.selectbox("Payment Method", ["Tix.do", "Cash at Door", "Bank Deposit"])
+            amount_paid = st.number_input("Amount Paid", min_value=0.0, format="%.2f")
+            event_name = st.text_input("Event Name")
+            submitted = st.form_submit_button("Save Ticket Sale")
+            
+            if submitted:
+                save_ticket_sale(date.strftime("%Y-%m-%d"), customer_name if customer_name else "Anonymous", ticket_type, payment_method, amount_paid, event_name)
+                st.success("✅ Ticket sale logged successfully!")
 
-with tab2:
-    st.subheader("🔍 Search & Filter Customers")
-    search_query = st.text_input("Search by Name, Contact, or Company")
-    df = load_data()
-    if search_query:
-        df = df[df.apply(lambda row: search_query.lower() in str(row["Customer Name"]).lower() or search_query.lower() in str(row["Contact"]).lower() or search_query.lower() in str(row["Company"]).lower(), axis=1)]
-    st.dataframe(df, use_container_width=True, height=400)
-
-with tab3:
-    st.subheader("⏰ Follow-up Reminders")
-    today = datetime.today().strftime("%Y-%m-%d")
-    df_followups = df[df["Follow-up Reminder Date"] >= today] if "Follow-up Reminder Date" in df.columns else pd.DataFrame()
-    if not df_followups.empty:
-        for index, row in df_followups.iterrows():
-            st.write(f"**{row['Customer Name']}** - Follow-up on {row['Follow-up Reminder Date']}")
-    else:
-        st.info("No upcoming follow-ups.")
+    with st.expander("📊 Ticket Sales Overview", expanded=True):
+        df_tickets = load_ticket_data()
+        if not df_tickets.empty:
+            total_revenue = df_tickets["Amount Paid"].astype(float).sum()
+            total_tickets = len(df_tickets)
+            st.metric(label="💰 Total Revenue", value=f"RD${total_revenue:,.2f}")
+            st.metric(label="🎟 Total Tickets Sold", value=total_tickets)
+            st.dataframe(df_tickets, use_container_width=True, height=400)
+        else:
+            st.info("No ticket sales recorded yet.")
