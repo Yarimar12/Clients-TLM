@@ -11,7 +11,17 @@ SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis
 CREDS = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
 GC = gspread.authorize(CREDS)
 SHEET = GC.open("CRM_Logger").sheet1
-TICKET_SHEET = GC.open("CRM_Logger").worksheet("Ticket_Sales")
+
+# Ensure "Ticket_Sales" sheet exists
+def get_or_create_ticket_sheet():
+    try:
+        return GC.open("CRM_Logger").worksheet("Ticket_Sales")
+    except gspread.exceptions.WorksheetNotFound:
+        sheet = GC.open("CRM_Logger").add_worksheet(title="Ticket_Sales", rows="100", cols="6")
+        sheet.append_row(["Date", "Customer Name", "Ticket Type", "Payment Method", "Amount Paid", "Event Name"])
+        return sheet
+
+TICKET_SHEET = get_or_create_ticket_sheet()
 
 # Streamlit Authentication
 USER_CREDENTIALS = {"admin": "password123"}  # Change this later for security
@@ -80,23 +90,6 @@ st.write("Log customer interactions and track ticket sales.")
 
 # Use tabs for better navigation
 tab1, tab2, tab3, tab4 = st.tabs(["📋 Customer Log", "🔍 Search & Filter", "⏰ Follow-ups", "🎟 Ticket Sales"])
-
-with tab1:
-    with st.expander("📝 Log New Interaction", expanded=True):
-        with st.form("interaction_form"):
-            customer_name = st.text_input("Customer Name")
-            contact = st.text_input("Contact (Email/Phone)")
-            customer_type = st.selectbox("Customer Type", ["New", "Returning", "VIP"], format_func=lambda x: f"🔹 {x}" if x == "New" else (f"🔄 {x}" if x == "Returning" else f"🌟 {x}"))
-            company = st.text_input("Company/Organization")
-            preferred_contact = st.selectbox("Preferred Contact Method", ["Email", "Phone Call", "WhatsApp", "In-Person"])
-            last_interaction = st.date_input("Last Interaction Date")
-            follow_up = st.date_input("Follow-up Reminder Date")
-            notes = st.text_area("Interaction Notes")
-            submitted = st.form_submit_button("Save Interaction", use_container_width=True)
-            
-            if submitted and customer_name:
-                save_data(customer_name, contact, customer_type, company, preferred_contact, last_interaction, follow_up, notes)
-                st.success("✅ Interaction saved successfully!")
 
 with tab4:
     with st.expander("🎟 Log Ticket Sales", expanded=True):
