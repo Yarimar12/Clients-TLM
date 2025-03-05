@@ -111,7 +111,11 @@ with tab2:
 with tab3:
     st.subheader("⏰ Follow-up Reminders")
     today = datetime.today().strftime("%Y-%m-%d")
-    df_followups = df[df["Follow-up Reminder Date"] >= today]
+    if "Follow-up Reminder Date" in df.columns:
+        df_followups = df[df["Follow-up Reminder Date"] >= today]
+    else:
+        df_followups = pd.DataFrame()
+        st.warning("⚠️ Column 'Follow-up Reminder Date' not found. Unable to filter follow-ups.")
     if not df_followups.empty:
         for index, row in df_followups.iterrows():
             st.write(f"**{row['Customer Name']}** - Follow-up on {row['Follow-up Reminder Date']}")
