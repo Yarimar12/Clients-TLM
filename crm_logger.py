@@ -10,7 +10,7 @@ creds_dict = st.secrets["GOOGLE_CREDENTIALS"]
 SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 CREDS = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
 GC = gspread.authorize(CREDS)
-SHEET = GC.open("CRM_Logger").sheet1
+SHEET = GC.open("CRM_Logger").worksheet("Customer_Log")
 
 # Ensure "Ticket_Sales" sheet exists
 def get_or_create_ticket_sheet():
