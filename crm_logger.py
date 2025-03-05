@@ -71,56 +71,56 @@ st.write("Log customer interactions quickly and efficiently.")
 tab1, tab2, tab3 = st.tabs(["📋 Customer Log", "🔍 Search & Filter", "⏰ Follow-ups"])
 
 with tab1:
-    st.subheader("📝 Log New Interaction")
-    with st.form("interaction_form"):
-        customer_name = st.text_input("Customer Name")
-        contact = st.text_input("Contact (Email/Phone)")
-        customer_type = st.selectbox("Customer Type", ["New", "Returning", "VIP"])
-        company = st.text_input("Company/Organization")
-        preferred_contact = st.selectbox("Preferred Contact Method", ["Email", "Phone Call", "WhatsApp", "In-Person"])
-        last_interaction = st.date_input("Last Interaction Date")
-        follow_up = st.date_input("Follow-up Reminder Date")
-        notes = st.text_area("Interaction Notes")
-        submitted = st.form_submit_button("Save Interaction", use_container_width=True)
-        
-        if submitted and customer_name:
-            save_data(customer_name, contact, customer_type, company, preferred_contact, last_interaction, follow_up, notes)
-            st.success("✅ Interaction saved successfully!")
+    with st.expander("📝 Log New Interaction", expanded=True):
+        with st.form("interaction_form"):
+            customer_name = st.text_input("Customer Name")
+            contact = st.text_input("Contact (Email/Phone)")
+            customer_type = st.selectbox("Customer Type", ["New", "Returning", "VIP"], format_func=lambda x: f"🔹 {x}" if x == "New" else (f"🔄 {x}" if x == "Returning" else f"🌟 {x}"))
+            company = st.text_input("Company/Organization")
+            preferred_contact = st.selectbox("Preferred Contact Method", ["Email", "Phone Call", "WhatsApp", "In-Person"])
+            last_interaction = st.date_input("Last Interaction Date")
+            follow_up = st.date_input("Follow-up Reminder Date")
+            notes = st.text_area("Interaction Notes")
+            submitted = st.form_submit_button("Save Interaction", use_container_width=True)
+            
+            if submitted and customer_name:
+                save_data(customer_name, contact, customer_type, company, preferred_contact, last_interaction, follow_up, notes)
+                st.success("✅ Interaction saved successfully!")
 
 with tab2:
-    st.subheader("🔍 Search, Filter & Sort Customer Interactions")
-    search_query = st.text_input("Search by Customer Name, Contact, or Company")
-    sort_by = st.selectbox("Sort by", ["Date", "Customer Name", "Last Interaction Date", "Follow-up Reminder Date", "Total Visits"], index=0)
-    customer_type_filter = st.multiselect("Filter by Customer Type", ["New", "Returning", "VIP"], default=[])
-    
-    # Load and filter data
-    df = load_data()
-    if search_query:
-        df = df[df.apply(lambda row: search_query.lower() in str(row["Customer Name"]).lower() or search_query.lower() in str(row["Contact"]).lower() or search_query.lower() in str(row["Company"]).lower(), axis=1)]
-    
-    if customer_type_filter:
-        df = df[df["Customer Type"].isin(customer_type_filter)]
-    
-    if sort_by in df.columns:
-        df = df.sort_values(by=sort_by, ascending=True)
-    else:
-        st.warning(f"⚠️ Column '{sort_by}' not found. Showing unsorted data.")
-    
-    st.dataframe(df, use_container_width=True, height=400)
+    with st.expander("🔍 Search, Filter & Sort Customer Interactions", expanded=True):
+        search_query = st.text_input("Search by Customer Name, Contact, or Company")
+        sort_by = st.selectbox("Sort by", ["Date", "Customer Name", "Last Interaction Date", "Follow-up Reminder Date", "Total Visits"], index=0)
+        customer_type_filter = st.multiselect("Filter by Customer Type", ["New", "Returning", "VIP"], default=[])
+        
+        # Load and filter data
+        df = load_data()
+        if search_query:
+            df = df[df.apply(lambda row: search_query.lower() in str(row["Customer Name"]).lower() or search_query.lower() in str(row["Contact"]).lower() or search_query.lower() in str(row["Company"]).lower(), axis=1)]
+        
+        if customer_type_filter:
+            df = df[df["Customer Type"].isin(customer_type_filter)]
+        
+        if sort_by in df.columns:
+            df = df.sort_values(by=sort_by, ascending=True)
+        else:
+            st.warning(f"⚠️ Column '{sort_by}' not found. Showing unsorted data.")
+        
+        st.dataframe(df, use_container_width=True, height=400)
 
 with tab3:
-    st.subheader("⏰ Follow-up Reminders")
-    today = datetime.today().strftime("%Y-%m-%d")
-    if "Follow-up Reminder Date" in df.columns:
-        df_followups = df[df["Follow-up Reminder Date"] >= today]
-    else:
-        df_followups = pd.DataFrame()
-        st.warning("⚠️ Column 'Follow-up Reminder Date' not found. Unable to filter follow-ups.")
-    if not df_followups.empty:
-        for index, row in df_followups.iterrows():
-            st.write(f"**{row['Customer Name']}** - Follow-up on {row['Follow-up Reminder Date']}")
-            if st.button(f"✅ Mark as Completed {row['Customer Name']}", key=index):
-                SHEET.update_cell(index + 2, 8, "Completed")
-                st.experimental_rerun()
-    else:
-        st.info("No upcoming follow-ups.")
+    with st.expander("⏰ Follow-up Reminders", expanded=True):
+        today = datetime.today().strftime("%Y-%m-%d")
+        if "Follow-up Reminder Date" in df.columns:
+            df_followups = df[df["Follow-up Reminder Date"] >= today]
+        else:
+            df_followups = pd.DataFrame()
+            st.warning("⚠️ Column 'Follow-up Reminder Date' not found. Unable to filter follow-ups.")
+        if not df_followups.empty:
+            for index, row in df_followups.iterrows():
+                st.write(f"**{row['Customer Name']}** - Follow-up on {row['Follow-up Reminder Date']}")
+                if st.button(f"✅ Mark as Completed {row['Customer Name']}", key=index):
+                    SHEET.update_cell(index + 2, 8, "Completed")
+                    st.experimental_rerun()
+        else:
+            st.info("No upcoming follow-ups.")
